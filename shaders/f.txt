@@ -1,0 +1,71 @@
+#version 330 core
+
+out vec4 FragColor;
+in  vec3 Normal;
+in  vec3 FragPos;    
+
+uniform vec3 viewPos;
+
+struct Material {
+    vec3 diffuse;
+    vec3 specular;
+    float shininess;
+};
+
+struct Light {
+    vec3 position;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+
+    float constant;
+    float linear;
+    float quadratic;
+};
+
+uniform Light light;  
+uniform Material material;
+uniform float lightPower;
+
+float DitherNoise(vec2 pixel)
+{
+    return fract(
+        52.9829189 * fract(dot(pixel, vec2(0.06711056, 0.00583715)))
+    );
+}
+
+void main()
+{
+    vec3 norm = normalize(Normal);
+
+    // ambient light
+    vec3 ambient = light.ambient * material.diffuse;
+
+    vec3  lightDir = normalize(light.position - FragPos);              // getting direction from fragment to light source
+    float diff     = max(dot(norm, lightDir), 0.0);   // getting diffusion impact
+    vec3  diffuse  = diff * light.diffuse * material.diffuse;
+
+    // specular light
+    vec3 viewDir    = normalize(viewPos - FragPos);
+    vec3 reflectDir = reflect(-lightDir, norm);  
+    // Fade the highlight at grazing angles; no direct light reaches the back side.
+    float spec      = diff * pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    vec3 specular   = material.specular * spec * light.specular;  
+
+    // distance calculation
+    float distance    = length(light.position - FragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + 
+                        light.quadratic * (distance * distance));   
+    ambient  *= attenuation;  
+    diffuse  *= attenuation;
+    specular *= attenuation; 
+
+    // Final Lighting calculation
+    vec3 result = (ambient + diffuse + specular) * lightPower;
+
+    // Отклонение от -0.5 до +0.5 уровня 8-битного цвета.
+    float noise = (DitherNoise(gl_FragCoord.xy) - 0.5) / 255.0;
+
+    FragColor = vec4(result + vec3(noise), 1.0);
+}

@@ -1,0 +1,6 @@
+*.out
+*.o
+build/
+.vscode/
+.cache/
+MakeFile*
