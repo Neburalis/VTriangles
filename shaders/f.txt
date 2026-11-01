@@ -2,8 +2,8 @@
 
 out vec4 FragColor;
 in  vec3 Normal;
-in  vec3 FragPos;  
-in  float Intersects;  
+in  vec3 FragPos;    
+flat in float IntersectionFlag;
 
 uniform vec3 viewPos;
 
@@ -40,7 +40,7 @@ float DitherNoise(vec2 pixel)
 void main()
 {
     vec3 norm = normalize(Normal);
-    vec3 Color = Intersects == 0.0 ? material.diffuseNormal : material.diffuseInter;
+    vec3 Color = IntersectionFlag == 0.0 ? material.diffuseNormal : material.diffuseInter;
 
     // ambient light
     vec3 ambient = light.ambient * Color;

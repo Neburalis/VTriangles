@@ -3,6 +3,7 @@
 #include <array>
 #include <cstddef>
 #include <map>
+#include <stdexcept>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -13,9 +14,13 @@ namespace {
 const float CREASE_LIMIT = glm::cos(glm::radians(45.0f));
 } // namespace
 
-std::vector<float> BuildTriangleVertices(const std::vector<Triangle>& triangles, const std::vector<bool> &intersects) {
+std::vector<float> BuildTriangleVertices(const std::vector<Triangle>& triangles,
+                                         const std::vector<bool>& intersects) {
+    if (triangles.size() != intersects.size())
+        throw std::invalid_argument("Размер маски пересечений должен совпадать с числом треугольников");
+
     std::vector<float> vertices;
-    vertices.reserve(triangles.size() * 3 * 6);
+    vertices.reserve(triangles.size() * 3 * 7);
 
     std::map<std::array<float, 3>, std::vector<std::size_t>> adjacentFaces;
     std::vector<glm::vec3> areaNormals(triangles.size());

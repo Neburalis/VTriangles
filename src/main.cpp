@@ -10,7 +10,6 @@
 int main() {
     std::vector<Triangle> triangles = ReadTriangles(std::cin);
 
-    // Результат пока не используется рендерером, но поиск выполняется всегда.
     const std::vector<bool> intersects = FindIntersections(triangles);
 
     std::vector<float> triangleVertices = BuildTriangleVertices(triangles, intersects);
