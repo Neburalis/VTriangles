@@ -287,9 +287,10 @@ void Application::RenderScene() {
     normalShaders_->setVec3("viewPos", camera_.Position_);
 
     // Передаём параметры источника света.
-    normalShaders_->setVec3("light.ambient",       ambient_);
-    normalShaders_->setVec3("light.diffuse",       diffuse_);
-    normalShaders_->setVec3("light.specular",      specular_);
+    const glm::vec3 lightColor{lightColor_};
+    normalShaders_->setVec3("light.ambient",       ambient_ * lightColor);
+    normalShaders_->setVec3("light.diffuse",       diffuse_ * lightColor);
+    normalShaders_->setVec3("light.specular",      specular_ * lightColor);
     normalShaders_->setFloat("lightPower",         lightPower_);
     normalShaders_->setFloat("light.constant",     1.0f);
     normalShaders_->setFloat("light.linear",       0.09f);
@@ -307,7 +308,7 @@ void Application::RenderScene() {
     glBindVertexArray(triangleVAO_);
     const glm::mat4 identity{1.0f};
     normalShaders_->setMat4fv("trans", identity);
-    normalShaders_->setVec3("material.diffuse",  glm::vec3{1.0f});
+    normalShaders_->setVec3("material.diffuse",  objectColor_);
     normalShaders_->setVec3("material.specular", glm::vec3{1.0f});
     glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(triangleCount_ * 3));
 
@@ -315,7 +316,7 @@ void Application::RenderScene() {
     lightShaders_->use();
     lightShaders_->setMat4fv("projection", projection);
     lightShaders_->setMat4fv("view", view);
-    lightShaders_->setVec3("lightColor", glm::vec3{1.0f});
+    lightShaders_->setVec3("lightColor", lightColor);
 
     glm::mat4 trans = glm::translate(glm::mat4{1.0f}, lightPos_);
     trans = glm::scale(trans, glm::vec3(0.2f));
