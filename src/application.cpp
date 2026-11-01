@@ -101,10 +101,12 @@ int Application::Run() {
                  static_cast<GLsizeiptr>(triangleVertices_.size() * sizeof(float)),
                  triangleVertices_.data(), GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(0));                // координаты
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))); // нормали
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(0));                // координаты
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(3 * sizeof(float))); // нормали
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(6 * sizeof(float))); // пересекаются или нет
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
 
     // --------------------Mouse and Keyboard Callbacks Configure------------------------------
     glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -115,7 +117,7 @@ int Application::Run() {
 
     // -------------------------------Shaders Compiling----------------------------------------
     normalShaders_ = std::make_unique<Shader>(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
-    lightShaders_ = std::make_unique<Shader>(LIGHT_VERTEX_SHADER_PATH, LIGHT_FRAGMENT_SHADER_PATH);
+    lightShaders_  = std::make_unique<Shader>(LIGHT_VERTEX_SHADER_PATH, LIGHT_FRAGMENT_SHADER_PATH);
     normalShaders_->use();
 
     // ------------------------------------ImGui setup-----------------------------------------
@@ -241,7 +243,8 @@ void Application::RenderMenu() {
     ImGui::Begin("Change some variables!");
     ImGui::Text("Здесь вы можете поменять\n"
                 "Разные параметры модели");
-    ImGui::ColorEdit3("цвет треугольников", reinterpret_cast<float*>(&objectColor_));
+    ImGui::ColorEdit3("цвет пересек.",      reinterpret_cast<float*>(&objectColorInter_));
+    ImGui::ColorEdit3("цвет не пересек.",   reinterpret_cast<float*>(&objectColorNormal_));
     ImGui::ColorEdit3("цвет света",         reinterpret_cast<float*>(&lightColor_));
     ImGui::DragFloat3("позиция света",      reinterpret_cast<float*>(&lightPos_), 0.03f);
     ImGui::SliderFloat("мощность света",    &lightPower_, 0.5f, 200.0f);
@@ -288,8 +291,8 @@ void Application::RenderScene() {
 
     // Передаём параметры источника света.
     const glm::vec3 lightColor{lightColor_};
-    normalShaders_->setVec3("light.ambient",       ambient_ * lightColor);
-    normalShaders_->setVec3("light.diffuse",       diffuse_ * lightColor);
+    normalShaders_->setVec3("light.ambient",       ambient_  * lightColor);
+    normalShaders_->setVec3("light.diffuse",       diffuse_  * lightColor);
     normalShaders_->setVec3("light.specular",      specular_ * lightColor);
     normalShaders_->setFloat("lightPower",         lightPower_);
     normalShaders_->setFloat("light.constant",     1.0f);
@@ -308,7 +311,8 @@ void Application::RenderScene() {
     glBindVertexArray(triangleVAO_);
     const glm::mat4 identity{1.0f};
     normalShaders_->setMat4fv("trans", identity);
-    normalShaders_->setVec3("material.diffuse",  objectColor_);
+    normalShaders_->setVec3("material.diffuseInter",  objectColorInter_);
+    normalShaders_->setVec3("material.diffuseNormal", objectColorNormal_);
     normalShaders_->setVec3("material.specular", glm::vec3{1.0f});
     glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(triangleCount_ * 3));
 

@@ -13,7 +13,7 @@ namespace {
 const float CREASE_LIMIT = glm::cos(glm::radians(45.0f));
 } // namespace
 
-std::vector<float> BuildTriangleVertices(const std::vector<Triangle>& triangles) {
+std::vector<float> BuildTriangleVertices(const std::vector<Triangle>& triangles, const std::vector<bool> &intersects) {
     std::vector<float> vertices;
     vertices.reserve(triangles.size() * 3 * 6);
 
@@ -42,7 +42,8 @@ std::vector<float> BuildTriangleVertices(const std::vector<Triangle>& triangles)
             const glm::vec3 normal = glm::normalize(normalSum);
             vertices.insert(vertices.end(), {
                 point.x,      point.y,      point.z,
-                normal.x,      normal.y,      normal.z,
+                normal.x,     normal.y,      normal.z,
+                static_cast<float>(intersects[face]),
             });
         }
     }

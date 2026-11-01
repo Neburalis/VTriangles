@@ -70,7 +70,8 @@ private:
     glm::vec3 ambient_{0.2f, 0.2f, 0.2f};
     glm::vec3 diffuse_{0.5f, 0.5f, 0.5f};
     glm::vec3 specular_{1.0f, 1.0f, 1.0f};
-    glm::vec3 objectColor_{1.0f};
+    glm::vec3 objectColorInter_{1.0f, 0.0f, 0.0f};
+    glm::vec3 objectColorNormal_{0.0f, 1.0f, 0.0f};
 
     float lightPower_ = 1.0f;
     glm::vec4 lightColor_{1.0f};

@@ -2,12 +2,14 @@
 
 out vec4 FragColor;
 in  vec3 Normal;
-in  vec3 FragPos;    
+in  vec3 FragPos;  
+in  float Intersects;  
 
 uniform vec3 viewPos;
 
 struct Material {
-    vec3 diffuse;
+    vec3 diffuseInter;
+    vec3 diffuseNormal;
     vec3 specular;
     float shininess;
 };
@@ -38,13 +40,14 @@ float DitherNoise(vec2 pixel)
 void main()
 {
     vec3 norm = normalize(Normal);
+    vec3 Color = Intersects == 0.0 ? material.diffuseNormal : material.diffuseInter;
 
     // ambient light
-    vec3 ambient = light.ambient * material.diffuse;
+    vec3 ambient = light.ambient * Color;
 
     vec3  lightDir = normalize(light.position - FragPos);              // getting direction from fragment to light source
-    float diff     = max(dot(norm, lightDir), 0.0);   // getting diffusion impact
-    vec3  diffuse  = diff * light.diffuse * material.diffuse;
+    float diff     = max(abs(dot(norm, lightDir)), 0.0);   // getting diffusion impact
+    vec3  diffuse  = diff * light.diffuse * Color;
 
     // specular light
     vec3 viewDir    = normalize(viewPos - FragPos);
