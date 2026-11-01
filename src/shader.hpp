@@ -1,21 +1,20 @@
-#ifndef SHADER_H
-#define SHADER_H
+#pragma once
 
-#include "glm/gtc/type_ptr.hpp"
+#include <filesystem>
+#include <fstream>
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include <fstream>
-#include <filesystem>
 
-#include <glm/glm.hpp>
 #include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
+// Компилирует вершинный и фрагментный шейдеры и связывает их в программу.
 class Shader {
     unsigned int ID = 0;
 
-    // deletes shader automatically, even on throw
-    // ------------------------------------------------------------------------
+    // Удаляет шейдер автоматически, в том числе при исключении.
     struct ShaderGuard {
         unsigned int id;
         explicit ShaderGuard(GLenum type) : id(glCreateShader(type)) {}
@@ -23,35 +22,37 @@ class Shader {
     };
 
 public:
-    // constructor generates the shader on the fly
-    // ------------------------------------------------------------------------
     Shader(const char* vertexPath, const char* fragmentPath) {
         std::unique_ptr<char[]> VertexShaderCode   = ReadFromFile(vertexPath);
         std::unique_ptr<char[]> FragmentShaderCode = ReadFromFile(fragmentPath);
 
-        // compile shaders
+        // Компилируем шейдеры.
         ShaderGuard VShader(GL_VERTEX_SHADER);
         ShaderGuard FShader(GL_FRAGMENT_SHADER);
         CompileShader(VShader.id, VertexShaderCode.get());
         CompileShader(FShader.id, FragmentShaderCode.get());
 
-        // create and link program
+        // Создаём и связываем программу.
         ID = glCreateProgram();
-        AttachAndLink(VShader.id, FShader.id);
+        try {
+            AttachAndLink(VShader.id, FShader.id);
+        } catch (...) {
+            glDeleteProgram(ID);
+            ID = 0;
+            throw;
+        }
     }
 
     ~Shader() {
         glDeleteProgram(ID);
     }
 
-    // no copy, only move
-    // ------------------------------------------------------------------------
+    // Копирование и перемещение запрещены: объект владеет программой OpenGL.
     Shader(const Shader&)            = delete;
     Shader& operator=(const Shader&) = delete;
     Shader(Shader&& other)           = delete;
 
-    // activate the shader
-    // ------------------------------------------------------------------------
+    // Активирует шейдерную программу.
     void use() const noexcept {
         glUseProgram(ID);
     }
@@ -60,25 +61,24 @@ public:
         return ID;
     }
 
-    // utility uniform functions
-    // ------------------------------------------------------------------------
-    void setBool(const std::string &name, const bool value) const noexcept {
+    // Утилиты для установки uniform-переменных.
+    void setBool(const std::string& name, const bool value) const noexcept {
         glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
     }
-    // ------------------------------------------------------------------------
-    void setMat4fv(const std::string &name, const glm::mat4 &value) const noexcept {
+
+    void setMat4fv(const std::string& name, const glm::mat4& value) const noexcept {
         glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
     }
-    // ------------------------------------------------------------------------
-    void setInt(const std::string &name, const int value) const noexcept {
+
+    void setInt(const std::string& name, const int value) const noexcept {
         glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
     }
-    // ------------------------------------------------------------------------
-    void setVec3(const std::string &name, const glm::vec3 &value) const noexcept {
+
+    void setVec3(const std::string& name, const glm::vec3& value) const noexcept {
         glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, glm::value_ptr(value));
     }
-    // ------------------------------------------------------------------------
-    void setFloat(const std::string &name, const float value) const noexcept {
+
+    void setFloat(const std::string& name, const float value) const noexcept {
         glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
     }
 
@@ -92,13 +92,13 @@ private:
         checkCompileErrors(ID, true);
     }
 
-    static void CompileShader(unsigned int Shader, const char *const ShaderSource) {
+    static void CompileShader(unsigned int Shader, const char* const ShaderSource) {
         glShaderSource(Shader, 1, &ShaderSource, NULL);
         glCompileShader(Shader);
         checkCompileErrors(Shader, false);
     }
 
-    static std::unique_ptr<char[]> ReadFromFile(const std::string &FileName) {
+    static std::unique_ptr<char[]> ReadFromFile(const std::string& FileName) {
         std::ifstream file(FileName, std::ios::binary);
         if (!file)
             throw std::runtime_error("ERROR: couldnt open file <" + FileName + ">\n");
@@ -113,8 +113,7 @@ private:
         return buffer;
     }
 
-    // utility function for checking shader compilation/linking errors.
-    // ------------------------------------------------------------------------
+    // Проверяет ошибки компиляции шейдера или линковки программы.
     static void checkCompileErrors(unsigned int object, bool IsProgram) {
         int success = 0;
         char infoLog[1024];
@@ -133,4 +132,3 @@ private:
         }
     }
 };
-#endif

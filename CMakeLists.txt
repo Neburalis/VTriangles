@@ -10,7 +10,7 @@ option(ENABLE_SANITIZER "Enable Address and Undefined Behavior sanitizers" OFF)
 if(ENABLE_SANITIZER)
     add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
     add_link_options(-fsanitize=address,undefined)
-    
+
     message(STATUS "Sanitizers are ENABLED")
 else()
     message(STATUS "Sanitizers are DISABLED")
@@ -37,7 +37,6 @@ function(add_gl_app Name)
     target_include_directories(
         ${Name} PRIVATE
         ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}/include
         ${CMAKE_SOURCE_DIR}/external/stb_image
         ${CMAKE_SOURCE_DIR}/external/imgui
         ${CMAKE_SOURCE_DIR}/external/imgui/backends
@@ -50,4 +49,13 @@ function(add_gl_app Name)
     )
 endfunction()
 
-add_gl_app(main ${CMAKE_SOURCE_DIR}/src/main.cpp ${IMGUI_SOURCES})
+add_gl_app(main
+    ${CMAKE_SOURCE_DIR}/src/main.cpp
+    ${CMAKE_SOURCE_DIR}/src/triangle.cpp
+    ${CMAKE_SOURCE_DIR}/src/geometry.cpp
+    ${CMAKE_SOURCE_DIR}/src/mesh.cpp
+    ${CMAKE_SOURCE_DIR}/src/application.cpp
+    ${CMAKE_SOURCE_DIR}/src/application_input.cpp
+    ${CMAKE_SOURCE_DIR}/src/stb_image_impl.cpp
+    ${IMGUI_SOURCES}
+)
