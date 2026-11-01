@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(triangle)
 
+include(CTest)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -59,3 +61,10 @@ add_gl_app(main
     ${CMAKE_SOURCE_DIR}/src/stb_image_impl.cpp
     ${IMGUI_SOURCES}
 )
+
+if(BUILD_TESTING)
+    add_executable(mesh_test tests/mesh_test.cpp src/mesh.cpp)
+    target_include_directories(mesh_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
+    target_link_libraries(mesh_test PRIVATE glm::glm)
+    add_test(NAME mesh_intersection_flags COMMAND mesh_test)
+endif()

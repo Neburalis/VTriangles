@@ -3,6 +3,7 @@
 out vec4 FragColor;
 in  vec3 Normal;
 in  vec3 FragPos;    
+flat in float IntersectionFlag;
 
 uniform vec3 viewPos;
 
@@ -38,13 +39,16 @@ float DitherNoise(vec2 pixel)
 void main()
 {
     vec3 norm = normalize(Normal);
+    vec3 baseColor = IntersectionFlag > 0.5
+        ? vec3(1.0) - material.diffuse
+        : material.diffuse;
 
     // ambient light
-    vec3 ambient = light.ambient * material.diffuse;
+    vec3 ambient = light.ambient * baseColor;
 
     vec3  lightDir = normalize(light.position - FragPos);              // getting direction from fragment to light source
     float diff     = max(dot(norm, lightDir), 0.0);   // getting diffusion impact
-    vec3  diffuse  = diff * light.diffuse * material.diffuse;
+    vec3  diffuse  = diff * light.diffuse * baseColor;
 
     // specular light
     vec3 viewDir    = normalize(viewPos - FragPos);
